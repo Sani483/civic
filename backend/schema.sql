@@ -23,11 +23,15 @@ CREATE TABLE issues (
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    category VARCHAR(100), -- e.g., "Garbage", "Road", "Water"
-    status VARCHAR(50) DEFAULT 'pending', -- pending, in_progress, resolved
+    category VARCHAR(100), -- Road, Water, Garbage, Electricity, Manholes, Water Shortage, Street Lights, Other
+    status VARCHAR(50) DEFAULT 'Pending', -- Pending, In Progress, Resolved
+    location VARCHAR(255),
     latitude DECIMAL(9,6),
     longitude DECIMAL(9,6),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    image_url TEXT,
+    upvotes INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Updates by authorities on an issue

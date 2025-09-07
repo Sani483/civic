@@ -2,10 +2,16 @@ import { Router } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Pool } from "pg";
+import * as dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 const router = Router();
+const DATABASE_URL = process.env.DATABASE_URL || "postgresql://postgres:XkSSGOybkcMWgXTXqoefPKPzzozBrsOn@metro.proxy.rlwy.net:46631/railway";
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://postgres:password@host:port/railway",
+  connectionString: DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 

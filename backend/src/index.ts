@@ -1,19 +1,32 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import { Pool } from "pg";   // 👈 import pg
+import { Pool } from "pg";
+import { Server } from "socket.io";
+import http from "http";
 import authRoutes from "./routes/auth";
+import issueRoutes from "./routes/issues";
+import * as dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*", methods: ["GET", "POST"] }
+});
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
 // ✅ Railway PostgreSQL connection
+const DATABASE_URL = process.env.DATABASE_URL || "postgresql://postgres:XkSSGOybkcMWgXTXqoefPKPzzozBrsOn@metro.proxy.rlwy.net:46631/railway";
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://postgres:password@host:port/railway",
+  connectionString: DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
@@ -21,8 +34,11 @@ pool.connect()
   .then(() => console.log("✅ Connected to PostgreSQL"))
   .catch((err: Error) => console.error("❌ DB connection error", err));
 
-// ✅ Use auth routes AFTER app is created
+// Routes
 app.use("/auth", authRoutes);
+app.use("/issues", issueRoutes(io));
+app.use("/api", authRoutes);
+app.use("/api", issueRoutes(io));
 
 // Test route
 app.get("/", (req, res) => {
@@ -40,7 +56,16 @@ app.get("/db-test", async (req, res) => {
   }
 });
 
+// WebSocket connection
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`✅ Server is running on http://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`✅ Server is running on port ${PORT}`);
 });
